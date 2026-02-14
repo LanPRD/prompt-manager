@@ -1,10 +1,12 @@
-import { Button } from "@/components/ui/button";
-
 export default function Home() {
   return (
-    <main>
-      <h1>pr.dev</h1>
-      <Button>Test</Button>
-    </main>
+    <section className="flex min-h-full">
+      <div className="flex flex-1 items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Selecione um prompt</h1>
+          <p className="text-gray-400">Escolha um pompt da lista ao lado para visualizar e editar</p>
+        </div>
+      </div>
+    </section>
   );
 }
