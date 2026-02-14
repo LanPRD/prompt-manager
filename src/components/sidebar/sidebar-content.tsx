@@ -20,7 +20,7 @@ export function SidebarContent() {
   }
 
   function handleNewPrompt() {
-    router.prefetch("/new");
+    router.push("/new");
   }
 
   return (
@@ -64,6 +64,8 @@ export function SidebarContent() {
                   onClick={collapseSidebar}
                   variant={"icon"}
                   className="hidder md:inline-flex p-2 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-accent-500 rounded-lg transition-colors"
+                  title="Minimizar sidebar"
+                  aria-label="Minimizar sidebar"
                 >
                   <ArrowLeftToLine className="size-5 text-gray-100" />
                 </Button>
