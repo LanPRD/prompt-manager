@@ -2,14 +2,27 @@
 
 import { cn } from "@/lib/utils";
 import { ArrowLeftToLine, ArrowRightToLine, Plus, X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { startTransition, useState } from "react";
 import { Logo } from "../logo";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
-export function SidebarContent() {
+type Props = {
+  id: string;
+  title: string;
+  content: string;
+};
+
+export type SidebarContentProps = {
+  prompts: Props[];
+};
+
+export function SidebarContent({ prompts }: SidebarContentProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
 
   function collapseSidebar() {
     setIsCollapsed(!isCollapsed);
@@ -21,6 +34,23 @@ export function SidebarContent() {
 
   function handleNewPrompt() {
     router.push("/new");
+  }
+
+  function handleQueryChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const { value } = event.target;
+    setQuery(value);
+
+    startTransition(() => {
+      const params = new URLSearchParams(searchParams);
+
+      if (value) {
+        params.set("q", value);
+      } else {
+        params.delete("q");
+      }
+
+      router.replace(`/?${params.toString()}`, { scroll: false });
+    });
   }
 
   return (
@@ -72,6 +102,19 @@ export function SidebarContent() {
               </header>
             </div>
 
+            <section className="mb-5">
+              <form action="">
+                <Input
+                  name="q"
+                  value={query}
+                  onChange={handleQueryChange}
+                  type="text"
+                  placeholder="Buscar prompts..."
+                  autoFocus
+                />
+              </form>
+            </section>
+
             <div>
               <Button onClick={handleNewPrompt} variant={"default"} size={"lg"} className="w-full">
                 <Plus className="size-5 mr-2" />
@@ -81,6 +124,10 @@ export function SidebarContent() {
           </section>
         </>
       )}
+
+      {prompts.map(prompt => (
+        <p key={prompt.id}>{prompt.title}</p>
+      ))}
     </aside>
   );
 }

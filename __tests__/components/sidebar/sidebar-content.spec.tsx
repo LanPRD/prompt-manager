@@ -1,17 +1,25 @@
-import { SidebarContent } from "@/components/sidebar/sidebar-content";
+import { SidebarContent, type SidebarContentProps } from "@/components/sidebar/sidebar-content";
 import { render, screen } from "@/lib/test-utils";
 import userEvent from "@testing-library/user-event";
 
 const pushMock = jest.fn();
+let mockSearchParams = new URLSearchParams();
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({
-    push: pushMock
-  })
+    push: pushMock,
+    replace: pushMock
+  }),
+  useSearchParams: () => mockSearchParams
 }));
 
-function makeSut() {
-  return render(<SidebarContent />);
+const initialPrompts = [
+  { id: "1", title: "Prompt 1", content: "Content 1" },
+  { id: "2", title: "Prompt 2", content: "Content 2" }
+];
+
+function makeSut({ prompts = initialPrompts }: SidebarContentProps = {} as SidebarContentProps) {
+  return render(<SidebarContent prompts={prompts} />);
 }
 
 describe("<SidebarContent />", () => {
@@ -19,6 +27,7 @@ describe("<SidebarContent />", () => {
 
   beforeEach(() => {
     pushMock.mockClear();
+    mockSearchParams = new URLSearchParams();
   });
 
   describe("rendering", () => {
@@ -38,6 +47,23 @@ describe("<SidebarContent />", () => {
       makeSut();
 
       expect(screen.getByRole("button", { name: "Novo prompt" })).toBeVisible();
+    });
+
+    it("should render a prompt list", () => {
+      makeSut();
+
+      expect(screen.getByText(initialPrompts[0].title)).toBeInTheDocument();
+      expect(screen.getAllByRole("paragraph")).toHaveLength(initialPrompts.length);
+    });
+
+    it("should update list when search input changes", async () => {
+      makeSut();
+      const text = "AI";
+      const searchInput = screen.getByPlaceholderText("Buscar prompts...");
+
+      await user.type(searchInput, text);
+
+      expect(searchInput).toHaveValue(text);
     });
   });
 
@@ -74,6 +100,43 @@ describe("<SidebarContent />", () => {
       await user.click(newPromptButton);
 
       expect(pushMock).toHaveBeenCalledWith("/new");
+    });
+  });
+
+  describe("search", () => {
+    it("should navigate with search query when typing", async () => {
+      makeSut();
+      const text = "test query";
+      const searchInput = screen.getByPlaceholderText("Buscar prompts...");
+
+      await user.type(searchInput, text);
+
+      expect(pushMock).toHaveBeenCalled();
+      const lastCall = pushMock.mock.calls.at(-1);
+      const url = new URL(lastCall[0], "http://localhost");
+      expect(url.searchParams.get("q")).toBe(text);
+    });
+
+    it("should clear search query from URL when input is cleared", async () => {
+      makeSut();
+      const searchInput = screen.getByPlaceholderText("Buscar prompts...");
+
+      await user.type(searchInput, "test");
+      await user.clear(searchInput);
+
+      const lastCall = pushMock.mock.calls.at(-1);
+      const url = new URL(lastCall[0], "http://localhost");
+      expect(url.searchParams.has("q")).toBe(false);
+    });
+
+    it("should start search field with search query from URL", () => {
+      const text = "inicial";
+      const searchParams = new URLSearchParams(`q=${text}`);
+      mockSearchParams = searchParams;
+      makeSut();
+      const searchInput = screen.getByPlaceholderText("Buscar prompts...");
+
+      expect(searchInput).toHaveValue(text);
     });
   });
 });
