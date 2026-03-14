@@ -4,7 +4,7 @@ import { searchPromptAction } from "@/app/actions/prompt.actions";
 import { cn } from "@/lib/utils";
 import { ArrowLeftToLine, ArrowRightToLine, Plus, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { startTransition, useActionState, useRef, useState } from "react";
+import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { Logo } from "../logo";
 import { PromptList } from "../prompts";
 import { Button } from "../ui/button";
@@ -66,6 +66,11 @@ export function SidebarContent({ prompts }: SidebarContentProps) {
       formRef.current?.requestSubmit();
     });
   }
+
+  useEffect(() => {
+    if (!hasQuery) return;
+    formRef.current?.requestSubmit();
+  }, [hasQuery]);
 
   return (
     <aside
@@ -130,7 +135,6 @@ export function SidebarContent({ prompts }: SidebarContentProps) {
                   onChange={handleQueryChange}
                   type="text"
                   placeholder="Buscar prompts..."
-                  autoFocus
                 />
 
                 {isPending && (
