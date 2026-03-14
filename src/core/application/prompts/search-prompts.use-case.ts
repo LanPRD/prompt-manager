@@ -7,8 +7,6 @@ export class SearchPromptsUseCase {
   async execute(searchTerm?: string): Promise<PromptSummary[]> {
     const q = searchTerm?.trim() ?? "";
 
-    console.log(`Searching for prompts with query: ${q}`);
-
     if (!q) {
       return this.promptRepository.findMany();
     }
