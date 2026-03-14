@@ -19,6 +19,7 @@
     "test:cov": "jest --coverage"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.5.0",
     "class-variance-authority": "^0.7.1",
@@ -28,7 +29,9 @@
     "radix-ui": "^1.4.3",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "tailwind-merge": "^3.5.0"
+    "react-hook-form": "^7.71.2",
+    "tailwind-merge": "^3.5.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.3.0",
