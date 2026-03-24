@@ -1,6 +1,7 @@
 import "@/styles/globals.css";
 
 import { Sidebar } from "@/components/sidebar";
+import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
@@ -27,6 +28,8 @@ export default function RootLayout({
         <main className="relative flex-1 overflow-auto min-w-0">
           <div className="p-4 sm:p-6 md:p-5 max-w-full md:max-w-3xl mx-auto h-full">{children}</div>
         </main>
+
+        <Toaster position="top-right" />
       </body>
     </html>
   );
