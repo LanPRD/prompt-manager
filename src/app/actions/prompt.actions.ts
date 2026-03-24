@@ -1,15 +1,64 @@
 "use server";
 
+import { createPromptSchema, type CreatePromptDto } from "@/core/application/prompts/create-prompt.dto";
+import { CreatePromptUseCase } from "@/core/application/prompts/create-prompt.use-case";
 import { SearchPromptsUseCase } from "@/core/application/prompts/search-prompts.use-case";
 import type { PromptSummary } from "@/core/domain/prompts/prompt.entity";
 import { PrismaPromptRepository } from "@/infra/repository/prisma-prompt.repository";
 import { prisma } from "@/lib/prisma";
+import z from "zod";
 
 type SearchFormState = {
   success: boolean;
   prompts?: PromptSummary[];
   message?: string;
+  errors?: any;
 };
+
+export async function createPromptAction(data: CreatePromptDto) {
+  const validated = createPromptSchema.safeParse(data);
+
+  if (!validated.success) {
+    const { fieldErrors } = z.flattenError(validated.error);
+
+    return {
+      success: false,
+      message: "Validation failed",
+      errors: fieldErrors
+    };
+  }
+
+  try {
+    const repository = new PrismaPromptRepository(prisma);
+    const useCase = new CreatePromptUseCase(repository);
+
+    await useCase.execute(validated.data);
+
+    return {
+      success: true,
+      message: "Prompt created successfully."
+    };
+  } catch (error) {
+    const _error = error as Error;
+
+    if (_error.message === "PROMPT_ALREADY_EXISTS") {
+      return {
+        success: false,
+        message: "A prompt with the same title already exists."
+      };
+    }
+
+    return {
+      success: false,
+      message: "An error occurred while creating the prompt."
+    };
+  }
+}
+
+export async function getPromptsAction(): Promise<PromptSummary[]> {
+  const repository = new PrismaPromptRepository(prisma);
+  return repository.findMany();
+}
 
 export async function searchPromptAction(_prev: SearchFormState, formData: FormData): Promise<SearchFormState> {
   const term = String(formData.get("q") ?? "").trim();
