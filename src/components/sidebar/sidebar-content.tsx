@@ -37,8 +37,6 @@ export function SidebarContent({ prompts }: SidebarContentProps) {
 
   const promptList = hasQuery ? (searchState.prompts ?? prompts) : prompts;
 
-  console.log("SidebarContent prompts:", promptList);
-
   function collapseSidebar() {
     setIsCollapsed(!isCollapsed);
   }
