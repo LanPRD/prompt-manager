@@ -80,4 +80,17 @@ describe("PromptForm", () => {
     expect(toast.error).toHaveBeenCalledWith("Erro ao criar prompt!");
     expect(refreshMock).not.toHaveBeenCalled();
   });
+
+  it("should display validation errors", async () => {
+    makeSut();
+
+    const submitButton = screen.getByRole("button", { name: /salvar/i });
+
+    await user.click(submitButton);
+
+    expect(screen.getByText("Title is required")).toBeVisible();
+    expect(screen.getByText("Content is required")).toBeVisible();
+    expect(createActionMock).not.toHaveBeenCalled();
+    expect(refreshMock).not.toHaveBeenCalled();
+  });
 });
