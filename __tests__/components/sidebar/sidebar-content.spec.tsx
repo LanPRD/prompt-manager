@@ -1,5 +1,5 @@
 import { SidebarContent, type SidebarContentProps } from "@/components/sidebar/sidebar-content";
-import { render, screen } from "@/lib/test-utils";
+import { render, screen, waitFor } from "@/lib/test-utils";
 import userEvent from "@testing-library/user-event";
 
 const pushMock = jest.fn();
@@ -11,6 +11,10 @@ jest.mock("next/navigation", () => ({
     replace: pushMock
   }),
   useSearchParams: () => mockSearchParams
+}));
+
+jest.mock("@/app/actions/prompt.actions", () => ({
+  searchPromptAction: jest.fn().mockResolvedValue({ success: true, prompts: [] })
 }));
 
 const initialPrompts = [
@@ -155,14 +159,14 @@ describe("<SidebarContent />", () => {
       expect(url.searchParams.has("q")).toBe(false);
     });
 
-    it("should start search field with search query from URL", () => {
+    it("should start search field with search query from URL", async () => {
       const text = "inicial";
       const searchParams = new URLSearchParams(`q=${text}`);
       mockSearchParams = searchParams;
       makeSut();
       const searchInput = screen.getByPlaceholderText("Buscar prompts...");
 
-      expect(searchInput).toHaveValue(text);
+      await waitFor(() => expect(searchInput).toHaveValue(text));
     });
   });
 });
