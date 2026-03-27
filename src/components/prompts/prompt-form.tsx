@@ -8,7 +8,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { CopyButton } from "../button-actions";
 import { Button } from "../ui/button";
-import { Form, FormControl, FormField, FormItem } from "../ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 
@@ -55,6 +55,7 @@ export function PromptForm() {
               <FormControl>
                 <Input placeholder="Título do prompt" variant="transparent" size="lg" {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -67,6 +68,7 @@ export function PromptForm() {
               <FormControl>
                 <Textarea placeholder="Digite o conteúdo do prompt..." variant="transparent" size="lg" {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
