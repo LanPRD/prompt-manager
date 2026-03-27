@@ -83,6 +83,7 @@ describe("Server actions: Prompts", () => {
     });
 
     it("should return failure if an error occurs", async () => {
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
       mockedSearchExecute.mockRejectedValue(new Error("Database error"));
 
       const formData = new FormData();
@@ -93,6 +94,7 @@ describe("Server actions: Prompts", () => {
       expect(result.success).toBe(false);
       expect(result.prompts).toEqual(undefined);
       expect(result.message).toBe("An error occurred while searching for prompts.");
+      consoleSpy.mockRestore();
     });
   });
 });
