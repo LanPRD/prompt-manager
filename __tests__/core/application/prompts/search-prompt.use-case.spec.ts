@@ -1,5 +1,6 @@
+import type { CreatePromptDto } from "@/core/application/prompts/create-prompt.dto";
 import { SearchPromptsUseCase } from "@/core/application/prompts/search-prompts.use-case";
-import type { Prompt } from "@/core/domain/prompts/prompt.entity";
+import type { Prompt, PromptSummary } from "@/core/domain/prompts/prompt.entity";
 import type { PromptRepository } from "@/core/domain/prompts/prompt.repository";
 
 describe("SearchPromptsUseCase", () => {
@@ -17,7 +18,13 @@ describe("SearchPromptsUseCase", () => {
   const repository: PromptRepository = {
     findMany: async () => input,
     searchMany: async (searchTerm: string) =>
-      input.filter(prompt => prompt.title.toLowerCase().includes(searchTerm.toLowerCase()))
+      input.filter(prompt => prompt.title.toLowerCase().includes(searchTerm.toLowerCase())),
+    findByTitle: function (title: string): Promise<PromptSummary | null> {
+      throw new Error("Function not implemented.");
+    },
+    create: function (data: CreatePromptDto): Promise<void> {
+      throw new Error("Function not implemented.");
+    }
   };
 
   afterEach(() => {
