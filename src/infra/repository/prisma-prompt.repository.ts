@@ -1,12 +1,32 @@
-import type { PromptSummary } from "@/core/domain/prompts/prompt.entity";
+import type { CreatePromptDto } from "@/core/application/prompts/create-prompt.dto";
+import type { Prompt } from "@/core/domain/prompts/prompt.entity";
 import type { PromptRepository } from "@/core/domain/prompts/prompt.repository";
 import type { PrismaClient } from "../../../prisma/generated/client";
-import type { CreatePromptDto } from "@/core/application/prompts/create-prompt.dto";
 
 export class PrismaPromptRepository implements PromptRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async findByTitle(title: string): Promise<PromptSummary | null> {
+  async update(id: string, data: Partial<CreatePromptDto>): Promise<Prompt> {
+    const updated = await this.prisma.prompt.update({
+      where: { id },
+      data: {
+        ...(data.title !== undefined ? { title: data.title } : {}),
+        ...(data.content !== undefined ? { content: data.content } : {})
+      }
+    });
+
+    return updated;
+  }
+
+  async findById(id: string): Promise<Prompt | null> {
+    const prompt = await this.prisma.prompt.findUnique({
+      where: { id }
+    });
+
+    return prompt;
+  }
+
+  async findByTitle(title: string): Promise<Prompt | null> {
     const prompt = await this.prisma.prompt.findFirst({
       where: { title }
     });
@@ -20,7 +40,7 @@ export class PrismaPromptRepository implements PromptRepository {
     });
   }
 
-  async findMany(): Promise<PromptSummary[]> {
+  async findMany(): Promise<Prompt[]> {
     const prompts = await this.prisma.prompt.findMany({
       orderBy: { createdAt: "desc" }
     });
@@ -28,7 +48,7 @@ export class PrismaPromptRepository implements PromptRepository {
     return prompts;
   }
 
-  async searchMany(searchTerm: string): Promise<PromptSummary[]> {
+  async searchMany(searchTerm: string): Promise<Prompt[]> {
     const prompts = await this.prisma.prompt.findMany({
       where: {
         OR: [

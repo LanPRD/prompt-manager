@@ -1,9 +1,11 @@
 import type { CreatePromptDto } from "@/core/application/prompts/create-prompt.dto";
-import type { PromptSummary } from "./prompt.entity";
+import { Prompt } from "./prompt.entity";
 
 export interface PromptRepository {
-  findMany(): Promise<PromptSummary[]>;
-  searchMany(searchTerm: string): Promise<PromptSummary[]>;
-  findByTitle(title: string): Promise<PromptSummary | null>;
   create(data: CreatePromptDto): Promise<void>;
+  update(id: string, data: Partial<CreatePromptDto>): Promise<Prompt>;
+  findMany(): Promise<Prompt[]>;
+  findById(id: string): Promise<Prompt | null>;
+  findByTitle(title: string): Promise<Prompt | null>;
+  searchMany(term: string): Promise<Prompt[]>;
 }
