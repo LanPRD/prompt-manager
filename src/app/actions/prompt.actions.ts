@@ -3,6 +3,8 @@
 import { createPromptSchema, type CreatePromptDto } from "@/core/application/prompts/create-prompt.dto";
 import { CreatePromptUseCase } from "@/core/application/prompts/create-prompt.use-case";
 import { SearchPromptsUseCase } from "@/core/application/prompts/search-prompts.use-case";
+import { updatePromptSchema, type UpdatePromptDto } from "@/core/application/prompts/update-prompt.dto";
+import { UpdatePromptUseCase } from "@/core/application/prompts/update-prompt.use-case";
 import type { PromptSummary } from "@/core/domain/prompts/prompt.entity";
 import { PrismaPromptRepository } from "@/infra/repository/prisma-prompt.repository";
 import { prisma } from "@/lib/prisma";
@@ -13,6 +15,13 @@ type SearchFormState = {
   prompts?: PromptSummary[];
   message?: string;
   errors?: any;
+};
+
+type FormState = {
+  success: boolean;
+  prompts?: PromptSummary[];
+  message?: string;
+  errors?: unknown;
 };
 
 export async function createPromptAction(data: CreatePromptDto) {
@@ -85,6 +94,43 @@ export async function searchPromptAction(_prev: SearchFormState, formData: FormD
     return {
       success: false,
       message: "An error occurred while searching for prompts."
+    };
+  }
+}
+
+export async function updatePromptAction(data: UpdatePromptDto): Promise<FormState> {
+  const validated = updatePromptSchema.safeParse(data);
+
+  if (!validated.success) {
+    const { fieldErrors } = z.flattenError(validated.error);
+    return {
+      success: false,
+      message: "Validation error",
+      errors: fieldErrors
+    };
+  }
+
+  try {
+    const repository = new PrismaPromptRepository(prisma);
+    const useCase = new UpdatePromptUseCase(repository);
+    await useCase.execute(validated.data);
+
+    return {
+      success: true,
+      message: "Prompt updated successfully."
+    };
+  } catch (error) {
+    const _error = error as Error;
+    if (_error.message === "PROMPT_NOT_FOUND") {
+      return {
+        success: false,
+        message: "Prompt not found"
+      };
+    }
+
+    return {
+      success: false,
+      message: "Failed to update prompt"
     };
   }
 }
