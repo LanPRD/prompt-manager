@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import { faker } from "@faker-js/faker";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "./generated/client";
