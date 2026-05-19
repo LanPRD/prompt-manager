@@ -11,8 +11,8 @@ const config: Config = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1"
   },
-  coveragePathIgnorePatterns: ["/node_modules/", "/.next/", "/e2e/", "/src/components/ui/", "/src/lib/", "/prisma/"],
-  testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/.next/", "<rootDir>/e2e/"]
+  coveragePathIgnorePatterns: ["/node_modules/", "/.next/", "/__tests__/e2e/", "/src/components/ui/", "/src/lib/", "/prisma/"],
+  testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/.next/", "<rootDir>/__tests__/e2e/"]
 };
 
 export default createJestConfig(config);
