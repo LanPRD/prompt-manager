@@ -1,7 +1,8 @@
 "use client";
 
-import { createPromptAction } from "@/app/actions/prompt.actions";
+import { createPromptAction, updatePromptAction } from "@/app/actions/prompt.actions";
 import { CreatePromptDto, createPromptSchema } from "@/core/application/prompts/create-prompt.dto";
+import type { Prompt } from "@/core/domain/prompts/prompt.entity";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
@@ -12,21 +13,33 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form"
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 
-export function PromptForm() {
+type PromptFormProps = {
+  prompt?: Prompt | null;
+};
+
+export function PromptForm({ prompt }: PromptFormProps) {
   const router = useRouter();
 
   const form = useForm<CreatePromptDto>({
     resolver: zodResolver(createPromptSchema),
     defaultValues: {
-      title: "",
-      content: ""
+      title: prompt?.title ?? "",
+      content: prompt?.content ?? ""
     }
   });
 
   const content = useWatch({ control: form.control, name: "content" });
 
+  const isEdit = !!prompt?.id;
+
   async function submit(data: CreatePromptDto) {
-    const result = await createPromptAction(data);
+    const result =
+      isEdit ?
+        await updatePromptAction({
+          id: prompt.id,
+          ...data
+        })
+      : await createPromptAction(data);
 
     if (!result.success) {
       toast.error(result.message || "Ocorreu um erro ao criar o prompt.");
