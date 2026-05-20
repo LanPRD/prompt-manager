@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
 import { PrismaClient } from "../../prisma/generated/client";
 
 test("Create prompt (success)", async ({ page }) => {
@@ -23,8 +22,7 @@ test("Cannot duplicate prompt title", async ({ page }) => {
   const uniqueTitle = `Test Prompt ${new Date().toISOString()}`;
   const content = "This is a test prompt.";
 
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  const adapter = new PrismaPg(pool);
+  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
   const prisma = new PrismaClient({ adapter });
 
   await prisma.prompt.deleteMany({
