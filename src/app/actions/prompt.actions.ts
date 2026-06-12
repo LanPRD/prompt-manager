@@ -130,7 +130,7 @@ export async function updatePromptAction(data: UpdatePromptDto): Promise<FormSta
 
     return {
       success: false,
-      message: "Failed to update prompt"
+      message: "Failed to update prompt."
     };
   }
 }
