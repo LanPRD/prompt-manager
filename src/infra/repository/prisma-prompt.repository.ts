@@ -48,17 +48,18 @@ export class PrismaPromptRepository implements PromptRepository {
     return prompts;
   }
 
-  async searchMany(searchTerm: string): Promise<Prompt[]> {
+  async searchMany(term?: string): Promise<Prompt[]> {
+    const q = term?.trim() ?? "";
+
     const prompts = await this.prisma.prompt.findMany({
-      where: {
-        OR: [
-          { title: { contains: searchTerm, mode: "insensitive" } },
-          { content: { contains: searchTerm, mode: "insensitive" } }
-        ]
-      },
+      where:
+        q ?
+          {
+            OR: [{ title: { contains: q, mode: "insensitive" } }, { content: { contains: q, mode: "insensitive" } }]
+          }
+        : undefined,
       orderBy: { createdAt: "desc" }
     });
-
     return prompts;
   }
 }
