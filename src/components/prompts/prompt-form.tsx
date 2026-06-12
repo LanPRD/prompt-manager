@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form"
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 
-type PromptFormProps = {
+export type PromptFormProps = {
   prompt?: Prompt | null;
 };
 
