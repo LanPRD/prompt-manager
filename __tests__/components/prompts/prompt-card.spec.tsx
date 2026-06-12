@@ -3,6 +3,12 @@ import { render, screen } from "@/lib/test-utils";
 import userEvent from "@testing-library/user-event";
 import { toast } from "sonner";
 
+const deleteMock = jest.fn();
+
+jest.mock("@/app/actions/prompt.actions", () => ({
+  deletePromptAction: (id: string) => deleteMock(id)
+}));
+
 jest.mock("sonner", () => ({
   toast: { success: jest.fn(), error: jest.fn() }
 }));
@@ -34,6 +40,11 @@ describe("PromptCard", () => {
   });
 
   it("should remove the prompt and show a success message", async () => {
+    deleteMock.mockResolvedValue({
+      success: true,
+      message: "Prompt removido com sucesso!"
+    });
+
     makeSut({ prompt });
 
     const deleteButton = screen.getByRole("button", { name: "Remover Prompt" });
@@ -43,5 +54,36 @@ describe("PromptCard", () => {
     await user.click(screen.getByRole("button", { name: "Confirmar remoção" }));
 
     expect(toast.success).toHaveBeenCalledWith("Prompt removido com sucesso!");
+  });
+
+  it("should show error when action fails", async () => {
+    const errorMessage = "Erro ao remover prompt";
+
+    deleteMock.mockResolvedValue({
+      success: false,
+      message: errorMessage
+    });
+
+    makeSut({ prompt });
+
+    const deleteButton = screen.getByRole("button", { name: "Remover Prompt" });
+
+    await user.click(deleteButton);
+    await user.click(screen.getByRole("button", { name: "Confirmar remoção" }));
+
+    expect(toast.error).toHaveBeenCalledWith(errorMessage);
+  });
+
+  it("should show error when action throws an exception", async () => {
+    const errorMessage = "Erro";
+
+    deleteMock.mockRejectedValueOnce(new Error(errorMessage));
+
+    render(<PromptCard prompt={prompt} />);
+
+    await user.click(screen.getByRole("button"));
+    await user.click(screen.getByRole("button", { name: "Confirmar remoção" }));
+
+    expect(toast.error).toHaveBeenCalledWith(errorMessage);
   });
 });
