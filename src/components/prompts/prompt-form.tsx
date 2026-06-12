@@ -42,7 +42,7 @@ export function PromptForm({ prompt }: PromptFormProps) {
       : await createPromptAction(data);
 
     if (!result.success) {
-      toast.error(result.message || "Ocorreu um erro ao criar o prompt.");
+      toast.error(result.message);
       return;
     }
 
