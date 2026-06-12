@@ -1,9 +1,10 @@
-import { createPromptAction, searchPromptAction } from "@/app/actions/prompt.actions";
+import { createPromptAction, searchPromptAction, updatePromptAction } from "@/app/actions/prompt.actions";
 
 jest.mock("@/lib/prisma", () => ({ prisma: {} }));
 
 const mockedSearchExecute = jest.fn();
 const mockedCreateExecute = jest.fn();
+const mockedUpdateExecute = jest.fn();
 
 jest.mock("@/core/application/prompts/search-prompts.use-case", () => ({
   SearchPromptsUseCase: jest.fn().mockImplementation(() => ({ execute: mockedSearchExecute }))
@@ -13,9 +14,15 @@ jest.mock("@/core/application/prompts/create-prompt.use-case", () => ({
   CreatePromptUseCase: jest.fn().mockImplementation(() => ({ execute: mockedCreateExecute }))
 }));
 
+jest.mock("@/core/application/prompts/update-prompt.use-case", () => ({
+  UpdatePromptUseCase: jest.fn().mockImplementation(() => ({ execute: mockedUpdateExecute }))
+}));
+
 describe("Server actions: Prompts", () => {
   beforeEach(() => {
     mockedSearchExecute.mockReset();
+    mockedCreateExecute.mockReset();
+    mockedUpdateExecute.mockReset();
   });
 
   describe("createPromptAction", () => {
@@ -49,6 +56,17 @@ describe("Server actions: Prompts", () => {
 
       expect(result?.success).toBe(false);
       expect(result?.message).toBe("A prompt with the same title already exists.");
+    });
+
+    it("should return the generic error message for unknown errors", async () => {
+      mockedCreateExecute.mockRejectedValue(new Error("UNKNOWN_ERROR"));
+
+      const validData = { title: "New Prompt", content: "This is a new prompt." };
+
+      const result = await createPromptAction(validData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("An error occurred while creating the prompt.");
     });
   });
 
@@ -95,6 +113,75 @@ describe("Server actions: Prompts", () => {
       expect(result.prompts).toEqual(undefined);
       expect(result.message).toBe("An error occurred while searching for prompts.");
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe("updatePromptAction", () => {
+    it("should update a prompt successfully", async () => {
+      mockedUpdateExecute.mockResolvedValue({});
+
+      const promptId = "1";
+
+      const data = {
+        id: promptId,
+        title: "new title",
+        content: "new content"
+      };
+
+      const result = await updatePromptAction(data);
+
+      expect(result).toMatchObject({
+        success: true,
+        message: "Prompt updated successfully."
+      });
+    });
+
+    it("should return a validation error when fields are missing", async () => {
+      const data = {
+        id: "1",
+        title: "",
+        content: ""
+      };
+
+      const result = await updatePromptAction(data);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("Validation error");
+      expect(result.errors).toBeDefined();
+    });
+
+    it("should return an error when the prompt does not exist", async () => {
+      mockedUpdateExecute.mockRejectedValue(new Error("PROMPT_NOT_FOUND"));
+
+      const promptId = "1";
+
+      const data = {
+        id: promptId,
+        title: "New Title",
+        content: "New Content"
+      };
+
+      const result = await updatePromptAction(data);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("Prompt not found");
+    });
+
+    it("should return the generic error when update fails", async () => {
+      mockedUpdateExecute.mockRejectedValue(new Error("UNKNOWN_ERROR"));
+
+      const promptId = "1";
+
+      const data = {
+        id: promptId,
+        title: "New Title",
+        content: "New Content"
+      };
+
+      const result = await updatePromptAction(data);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("Failed to update prompt.");
     });
   });
 });
