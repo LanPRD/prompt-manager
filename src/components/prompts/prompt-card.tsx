@@ -17,17 +17,32 @@ import {
   AlertDialogTrigger
 } from "../ui/alert-dialog";
 import { Button } from "../ui/button";
+import { deletePromptAction } from "@/app/actions/prompt.actions";
 
 export type PromptCardProps = {
   prompt: PromptSummary;
 };
 
 export function PromptCard({ prompt }: PromptCardProps) {
-  const [isDeleting, _setIsDeleting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  function handleDelete() {
-    // setIsDeleting(true);
-    toast.success("Prompt removido com sucesso!");
+  async function handleDelete() {
+    setIsDeleting(true);
+
+    try {
+      const result = await deletePromptAction(prompt.id);
+
+      if (!result.success) {
+        toast.error(result.message);
+      }
+
+      toast.success(result.message);
+    } catch (error) {
+      const _error = error as Error;
+      toast.error(_error.message);
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   return (
