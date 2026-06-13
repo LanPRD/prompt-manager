@@ -5,7 +5,7 @@ demonstrate modern Next.js patterns, clean architecture, and a comprehensive tes
 
 ## Tech Stack
 
-**Frontend**
+### Frontend
 
 - [Next.js 16](https://nextjs.org/) — App Router, Server Components, Server Actions
 - [TypeScript](https://www.typescriptlang.org/)
@@ -14,17 +14,17 @@ demonstrate modern Next.js patterns, clean architecture, and a comprehensive tes
 - [Framer Motion](https://www.framer.com/motion/) — UI animations
 - [nuqs](https://nuqs.47ng.com/) — URL query state management
 
-**Backend / Data**
+### Backend / Data
 
 - [Prisma 7](https://www.prisma.io/) + PostgreSQL
 - Next.js Server Actions with `revalidatePath` for cache invalidation
 
-**Testing**
+### Testing
 
 - [Jest](https://jestjs.io/) + [Testing Library](https://testing-library.com/) — unit and component tests
 - [Playwright](https://playwright.dev/) — end-to-end tests against a real database
 
-**CI**
+### CI
 
 - GitHub Actions — runs build, Jest, and Playwright on every push
 
@@ -32,7 +32,7 @@ demonstrate modern Next.js patterns, clean architecture, and a comprehensive tes
 
 The project follows a **Clean Architecture** approach with clear separation between layers:
 
-```
+```text
 src/
 ├── app/                        # Next.js routes and Server Actions
 │   ├── actions/prompt.actions.ts
