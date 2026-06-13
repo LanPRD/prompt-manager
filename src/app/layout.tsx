@@ -1,5 +1,7 @@
 import "@/styles/globals.css";
 
+export const dynamic = "force-dynamic";
+
 import { Sidebar } from "@/components/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
