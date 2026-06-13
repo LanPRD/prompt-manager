@@ -1,16 +1,23 @@
 import {
   createPromptAction,
   deletePromptAction,
+  getPromptsAction,
   searchPromptAction,
   updatePromptAction
 } from "@/app/actions/prompt.actions";
+import { revalidatePath } from "../../../__mocks__/next-cache";
 
 jest.mock("@/lib/prisma", () => ({ prisma: {} }));
 
+const mockedFindMany = jest.fn();
 const mockedSearchExecute = jest.fn();
 const mockedCreateExecute = jest.fn();
 const mockedUpdateExecute = jest.fn();
 const mockedDeleteExecute = jest.fn();
+
+jest.mock("@/infra/repository/prisma-prompt.repository", () => ({
+  PrismaPromptRepository: jest.fn().mockImplementation(() => ({ findMany: mockedFindMany }))
+}));
 
 jest.mock("@/core/application/prompts/search-prompts.use-case", () => ({
   SearchPromptsUseCase: jest.fn().mockImplementation(() => ({ execute: mockedSearchExecute }))
@@ -30,10 +37,12 @@ jest.mock("@/core/application/prompts/delete-prompt.use-case", () => ({
 
 describe("Server actions: Prompts", () => {
   beforeEach(() => {
+    mockedFindMany.mockReset();
     mockedSearchExecute.mockReset();
     mockedCreateExecute.mockReset();
     mockedUpdateExecute.mockReset();
     mockedDeleteExecute.mockReset();
+    revalidatePath.mockReset();
   });
 
   describe("createPromptAction", () => {
@@ -109,6 +118,14 @@ describe("Server actions: Prompts", () => {
 
       expect(result.success).toBe(true);
       expect(result.prompts).toEqual(input);
+    });
+
+    it("should treat missing query key as empty string", async () => {
+      mockedSearchExecute.mockResolvedValue([]);
+
+      const result = await searchPromptAction({ success: true }, new FormData());
+
+      expect(result.success).toBe(true);
     });
 
     it("should return failure if an error occurs", async () => {
@@ -205,6 +222,7 @@ describe("Server actions: Prompts", () => {
 
       expect(result.success).toBe(true);
       expect(result.message).toBe("Prompt removed successfully.");
+      expect(revalidatePath).toHaveBeenCalledTimes(1);
     });
 
     it("should return an error when the id is empty", async () => {
@@ -214,6 +232,7 @@ describe("Server actions: Prompts", () => {
 
       expect(result.success).toBe(false);
       expect(result.message).toBe("Prompt ID is required.");
+      expect(revalidatePath).not.toHaveBeenCalled();
     });
 
     it("should return an error when the prompt does not exist", async () => {
@@ -224,16 +243,41 @@ describe("Server actions: Prompts", () => {
 
       expect(result.success).toBe(false);
       expect(result.message).toBe("Prompt not found.");
+      expect(revalidatePath).not.toHaveBeenCalled();
     });
 
     it("should return a generic error when the action fails", async () => {
       mockedDeleteExecute.mockRejectedValue(new Error("UNKNOWN"));
-      const promptId = "1";
 
+      const promptId = "1";
       const result = await deletePromptAction(promptId);
 
       expect(result.success).toBe(false);
       expect(result.message).toBe("Failed to remove prompt.");
+      expect(revalidatePath).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("getPromptsAction", () => {
+    it("should return all prompts", async () => {
+      const prompts = [
+        { id: "1", title: "Prompt A", content: "Content A" },
+        { id: "2", title: "Prompt B", content: "Content B" }
+      ];
+
+      mockedFindMany.mockResolvedValue(prompts);
+
+      const result = await getPromptsAction();
+
+      expect(result).toEqual(prompts);
+    });
+
+    it("should return an empty array when there are no prompts", async () => {
+      mockedFindMany.mockResolvedValue([]);
+
+      const result = await getPromptsAction();
+
+      expect(result).toEqual([]);
     });
   });
 });
