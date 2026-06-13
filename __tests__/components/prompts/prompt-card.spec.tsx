@@ -2,6 +2,7 @@ import { PromptCard, type PromptCardProps } from "@/components/prompts/prompt-ca
 import { render, screen } from "@/lib/test-utils";
 import userEvent from "@testing-library/user-event";
 import { toast } from "sonner";
+import { revalidatePath } from "../../../__mocks__/next-cache";
 
 const deleteMock = jest.fn();
 
@@ -79,7 +80,7 @@ describe("PromptCard", () => {
 
     deleteMock.mockRejectedValueOnce(new Error(errorMessage));
 
-    render(<PromptCard prompt={prompt} />);
+    makeSut({ prompt });
 
     await user.click(screen.getByRole("button"));
     await user.click(screen.getByRole("button", { name: "Confirmar remoção" }));
