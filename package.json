@@ -5,7 +5,7 @@
   "scripts": {
     "check:types": "tsc --noEmit",
     "dev": "next dev",
-    "build": "npm run db:generate && prisma migrate deploy && next build",
+    "build": "npm run db:generate && next build",
     "db:generate": "npx prisma generate && node prisma/fix-playwright-compat.js",
     "db:seed": "npx prisma db seed",
     "db:migrate": "npx prisma migrate dev",
