@@ -30,6 +30,9 @@ describe("SearchPromptsUseCase", () => {
     },
     findById: function (id: string): Promise<Prompt | null> {
       throw new Error("Function not implemented.");
+    },
+    delete: function (id: string): Promise<void> {
+      throw new Error("Function not implemented.");
     }
   };
 
