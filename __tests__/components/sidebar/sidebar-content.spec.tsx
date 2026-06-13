@@ -1,16 +1,31 @@
+import { searchPromptAction } from "@/app/actions/prompt.actions";
 import { SidebarContent, type SidebarContentProps } from "@/components/sidebar/sidebar-content";
 import { render, screen, waitFor } from "@/lib/test-utils";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 
 const pushMock = jest.fn();
+const setQueryMock = jest.fn();
 let mockSearchParams = new URLSearchParams();
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({
     push: pushMock,
     replace: pushMock
-  }),
-  useSearchParams: () => mockSearchParams
+  })
+}));
+
+jest.mock("nuqs", () => ({
+  useQueryState: (key: string) => {
+    const [value, setValue] = useState(mockSearchParams.get(key) ?? "");
+
+    const setQuery = (nextValue: string) => {
+      setQueryMock(nextValue);
+      setValue(nextValue);
+    };
+
+    return [value, setQuery] as const;
+  }
 }));
 
 jest.mock("@/app/actions/prompt.actions", () => ({
@@ -32,6 +47,7 @@ describe("<SidebarContent />", () => {
   beforeEach(() => {
     pushMock.mockClear();
     mockSearchParams = new URLSearchParams();
+    (searchPromptAction as jest.Mock).mockResolvedValue({ success: true, prompts: [] });
   });
 
   describe("rendering", () => {
@@ -68,6 +84,23 @@ describe("<SidebarContent />", () => {
       await user.type(searchInput, text);
 
       expect(searchInput).toHaveValue(text);
+    });
+  });
+
+  describe("SidebarContent - Mobile", () => {
+    it("must open and close the mobile menu", async () => {
+      makeSut();
+
+      const aside = screen.getByRole("complementary");
+      expect(aside.className).toContain("-translate-x-full");
+
+      const openButton = screen.getByRole("button", { name: "Abrir menu" });
+      await user.click(openButton);
+      expect(aside.className).toContain("translate-x-0");
+
+      const closeButton = screen.getByRole("button", { name: "Fechar menu" });
+      await user.click(closeButton);
+      expect(aside.className).toContain("-translate-x-full");
     });
   });
 
@@ -141,10 +174,9 @@ describe("<SidebarContent />", () => {
 
       await user.type(searchInput, text);
 
-      expect(pushMock).toHaveBeenCalled();
-      const lastCall = pushMock.mock.calls.at(-1);
-      const url = new URL(lastCall[0], "http://localhost");
-      expect(url.searchParams.get("q")).toBe(text);
+      expect(setQueryMock).toHaveBeenCalled();
+      const lastCall = setQueryMock.mock.calls.at(-1);
+      expect(lastCall?.[0]).toBe(text);
     });
 
     it("should clear search query from URL when input is cleared", async () => {
@@ -154,9 +186,21 @@ describe("<SidebarContent />", () => {
       await user.type(searchInput, "test");
       await user.clear(searchInput);
 
-      const lastCall = pushMock.mock.calls.at(-1);
-      const url = new URL(lastCall[0], "http://localhost");
-      expect(url.searchParams.has("q")).toBe(false);
+      const lastClearCall = setQueryMock.mock.calls.at(-1);
+      expect(lastClearCall?.[0]).toBe("");
+    });
+
+    it("should show initial prompts when search action returns no prompts", async () => {
+      (searchPromptAction as jest.Mock).mockResolvedValue({ success: false });
+
+      makeSut();
+
+      const searchInput = screen.getByPlaceholderText("Buscar prompts...");
+      await user.type(searchInput, "a");
+
+      await waitFor(() => {
+        expect(screen.getByText(initialPrompts[0].title)).toBeInTheDocument();
+      });
     });
 
     it("should start search field with search query from URL", async () => {
