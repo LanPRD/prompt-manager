@@ -13,5 +13,5 @@ export default async function PromptPage({ params }: PromptPageProps) {
   const repository = new PrismaPromptRepository(prisma);
   const prompt = await repository.findById(id);
 
-  return <PromptForm prompt={prompt} />;
+  return <PromptForm key={id} prompt={prompt} />;
 }
