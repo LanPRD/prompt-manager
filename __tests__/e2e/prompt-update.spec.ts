@@ -18,22 +18,25 @@ test("Update prompt by UI (success)", async ({ page }) => {
     }
   });
 
-  await prisma.$disconnect();
+  try {
+    await page.goto(`/${created.id}`);
 
-  await page.goto(`/${created.id}`);
+    await expect(page.getByPlaceholder("Título do prompt")).toBeVisible();
 
-  await expect(page.getByPlaceholder("Título do prompt")).toBeVisible();
+    await page.fill("input[name='title']", updatedTitle);
+    await page.fill("textarea[name='content']", content);
 
-  await page.fill("input[name='title']", updatedTitle);
-  await page.fill("textarea[name='content']", content);
+    await page.getByRole("button", { name: "Salvar" }).click();
 
-  await page.getByRole("button", { name: "Salvar" }).click();
+    await page.waitForSelector("text=Prompt updated successfully.", {
+      timeout: 10000,
+      state: "visible"
+    });
 
-  await page.waitForSelector("text=Prompt updated successfully.", {
-    timeout: 10000,
-    state: "visible"
-  });
-
-  await expect(page.getByRole("heading", { name: updatedTitle })).toBeVisible();
-  await expect(page.locator("textarea[name='content']")).toHaveValue(content);
+    await expect(page.getByRole("heading", { name: updatedTitle })).toBeVisible();
+    await expect(page.locator("textarea[name='content']")).toHaveValue(content);
+  } finally {
+    await prisma.prompt.deleteMany({ where: { id: created.id } });
+    await prisma.$disconnect();
+  }
 });
