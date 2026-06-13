@@ -5,6 +5,7 @@ export class DeletePromptUseCase {
 
   async execute(id: string) {
     const prompt = await this.promptRepository.findById(id);
+
     if (!prompt) {
       throw new Error("PROMPT_NOT_FOUND");
     }
