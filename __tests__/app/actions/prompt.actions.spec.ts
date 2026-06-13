@@ -47,7 +47,7 @@ describe("Server actions: Prompts", () => {
 
   describe("createPromptAction", () => {
     it("should create a prompt successfully", async () => {
-      mockedCreateExecute.mockResolvedValue(undefined);
+      mockedCreateExecute.mockResolvedValue("new-prompt-id");
 
       const validData = { title: "New Prompt", content: "This is a new prompt." };
 
@@ -55,6 +55,7 @@ describe("Server actions: Prompts", () => {
 
       expect(result?.message).toBe("Prompt created successfully.");
       expect(result?.success).toBe(true);
+      expect(result?.id).toBe("new-prompt-id");
       expect(revalidatePath).toHaveBeenCalledTimes(1);
     });
 

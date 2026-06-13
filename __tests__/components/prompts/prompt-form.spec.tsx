@@ -4,10 +4,12 @@ import userEvent from "@testing-library/user-event";
 import { toast } from "sonner";
 
 const refreshMock = jest.fn();
+const pushMock = jest.fn();
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({
-    refresh: refreshMock
+    refresh: refreshMock,
+    push: pushMock
   })
 }));
 
@@ -35,14 +37,15 @@ describe("PromptForm", () => {
 
   beforeEach(() => {
     refreshMock.mockReset();
+    pushMock.mockReset();
     createActionMock.mockReset();
     updateActionMock.mockReset();
     (toast.success as jest.Mock).mockReset();
     (toast.error as jest.Mock).mockReset();
   });
 
-  it("should create a new prompt", async () => {
-    createActionMock.mockResolvedValueOnce({ success: true, message: "Prompt criado com sucesso!" });
+  it("should create a new prompt and redirect to the new prompt page", async () => {
+    createActionMock.mockResolvedValueOnce({ success: true, message: "Prompt criado com sucesso!", id: "new-id" });
     makeSut();
 
     const titleInput = screen.getByPlaceholderText("Título do prompt");
@@ -63,7 +66,8 @@ describe("PromptForm", () => {
     expect(toast.success).toHaveBeenCalledTimes(1);
     expect(toast.success).toHaveBeenCalledWith("Prompt criado com sucesso!");
 
-    expect(refreshMock).toHaveBeenCalledTimes(1);
+    expect(pushMock).toHaveBeenCalledWith("/new-id");
+    expect(refreshMock).not.toHaveBeenCalled();
   });
 
   it("should display an error message when prompt creation fails", async () => {
@@ -81,6 +85,7 @@ describe("PromptForm", () => {
 
     expect(toast.error).toHaveBeenCalledTimes(1);
     expect(toast.error).toHaveBeenCalledWith("Erro ao criar prompt!");
+    expect(pushMock).not.toHaveBeenCalled();
     expect(refreshMock).not.toHaveBeenCalled();
   });
 

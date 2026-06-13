@@ -4,7 +4,13 @@ import type { PromptRepository } from "@/core/domain/prompts/prompt.repository";
 function makeRepository(override = {} as Partial<PromptRepository>): PromptRepository {
   return {
     findByTitle: jest.fn().mockResolvedValue(null),
-    create: jest.fn().mockResolvedValue(undefined),
+    create: jest.fn().mockResolvedValue({
+      id: "generated-id",
+      title: "",
+      content: "",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }),
     ...override
   } as PromptRepository;
 }
