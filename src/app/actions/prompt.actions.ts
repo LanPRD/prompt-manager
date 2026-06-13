@@ -45,6 +45,8 @@ export async function createPromptAction(data: CreatePromptDto) {
 
     await useCase.execute(validated.data);
 
+    revalidatePath("/");
+
     return {
       success: true,
       message: "Prompt created successfully."
@@ -116,6 +118,8 @@ export async function updatePromptAction(data: UpdatePromptDto): Promise<FormSta
     const repository = new PrismaPromptRepository(prisma);
     const useCase = new UpdatePromptUseCase(repository);
     await useCase.execute(validated.data);
+
+    revalidatePath("/");
 
     return {
       success: true,

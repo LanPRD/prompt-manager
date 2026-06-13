@@ -55,6 +55,7 @@ describe("Server actions: Prompts", () => {
 
       expect(result?.message).toBe("Prompt created successfully.");
       expect(result?.success).toBe(true);
+      expect(revalidatePath).toHaveBeenCalledTimes(1);
     });
 
     it("should return validation errors for invalid input", async () => {
@@ -162,6 +163,7 @@ describe("Server actions: Prompts", () => {
         success: true,
         message: "Prompt updated successfully."
       });
+      expect(revalidatePath).toHaveBeenCalledTimes(1);
     });
 
     it("should return a validation error when fields are missing", async () => {
