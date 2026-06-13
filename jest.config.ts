@@ -7,11 +7,21 @@ const createJestConfig = nextJest({
 
 const config: Config = {
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
+  extensionsToTreatAsEsm: [".ts", ".tsx"],
+  transform: {},
   testEnvironment: "jsdom",
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/src/$1"
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^next/cache$": "<rootDir>/__mocks__/next-cache.ts"
   },
-  coveragePathIgnorePatterns: ["/node_modules/", "/.next/", "/__tests__/e2e/", "/src/components/ui/", "/src/lib/", "/prisma/"],
+  coveragePathIgnorePatterns: [
+    "/node_modules/",
+    "/.next/",
+    "/__tests__/e2e/",
+    "/src/components/ui/",
+    "/src/lib/",
+    "/prisma/"
+  ],
   testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/.next/", "<rootDir>/__tests__/e2e/"]
 };
 
