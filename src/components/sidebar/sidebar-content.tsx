@@ -2,8 +2,10 @@
 
 import { searchPromptAction } from "@/app/actions/prompt.actions";
 import { cn } from "@/lib/utils";
-import { ArrowLeftToLine, ArrowRightToLine, Plus, X } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowLeftToLine, ArrowRightToLine, Menu, Plus, X } from "lucide-react";
+import { motion } from "motion/react";
+import { useRouter } from "next/navigation";
+import { useQueryState } from "nuqs";
 import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { Logo } from "../logo";
 import { PromptList } from "../prompts";
@@ -21,11 +23,13 @@ export type SidebarContentProps = {
   prompts: Props[];
 };
 
+const fadeTransition = { duration: 0.2, delay: 0.1 };
+
 export function SidebarContent({ prompts }: SidebarContentProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [query, setQuery] = useState(searchParams.get("q") ?? "");
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [query, setQuery] = useQueryState("q", { defaultValue: "" });
   const hasQuery = query.trim().length > 0;
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -45,6 +49,14 @@ export function SidebarContent({ prompts }: SidebarContentProps) {
     setIsCollapsed(false);
   }
 
+  function openMobile() {
+    setIsMobileOpen(true);
+  }
+
+  function closeMobile() {
+    setIsMobileOpen(false);
+  }
+
   function handleNewPrompt() {
     router.push("/new");
   }
@@ -54,15 +66,6 @@ export function SidebarContent({ prompts }: SidebarContentProps) {
     setQuery(value);
 
     startTransition(() => {
-      const params = new URLSearchParams(searchParams);
-
-      if (value) {
-        params.set("q", value);
-      } else {
-        params.delete("q");
-      }
-
-      router.replace(`/?${params.toString()}`, { scroll: false });
       formRef.current?.requestSubmit();
     });
   }
@@ -72,96 +75,136 @@ export function SidebarContent({ prompts }: SidebarContentProps) {
     formRef.current?.requestSubmit();
   }, [hasQuery]);
 
+  const iconButtonClassName = cn(
+    "md:inline-flex p-2 hover:bg-gray-700 focus:outline-none",
+    "focus:ring-2 focus:ring-accent-500 rounded-lg transition-colors"
+  );
+
   return (
-    <aside
-      className={cn(
-        "border-r border-gray-700 flex flex-col h-full bg-gray-800 transition-[transform,width] duration-300 ease-in-out fixed md:relative left-0 top-0 z-50 md:z-auto w-[80vw] sm:w-[320px]",
-        isCollapsed ? "md:w-18" : "md:w-[384px]"
-      )}
-    >
-      {isCollapsed && (
-        <section className="px-2 py-6">
-          <header className="flex items-center justify-center mb-6">
-            <Button
-              onClick={expandSidebar}
-              variant="icon"
-              className="hidden md:inline-flex p-2 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-accent-500 rounded-lg transition-colors"
-              aria-label="Expandir sidebar"
-              title="Expandir sidebar"
+    <>
+      <Button
+        className="md:hidden fixed top-6 left-6 z-50"
+        variant="secondary"
+        title="Abrir menu"
+        aria-label="Abrir menu"
+        aria-expanded={isMobileOpen}
+        onClick={openMobile}
+      >
+        <Menu className="w-5 h-5 text-gray-100" />
+      </Button>
+
+      <motion.aside
+        className={cn(
+          "border-r border-gray-700 flex flex-col h-full bg-gray-800",
+          "transition-[transform,width] duration-300 ease-in-out",
+          "fixed md:relative left-0 top-0 z-50 md:z-auto",
+          "w-[80vw] sm:w-[320px] md:translate-x-0",
+          isCollapsed ? "md:w-18" : "md:w-[384px]",
+          isMobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+        initial={false}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      >
+        {isCollapsed && (
+          <section className="px-2 py-6">
+            <header className="flex items-center justify-center mb-6">
+              <Button
+                onClick={expandSidebar}
+                variant="icon"
+                className={iconButtonClassName}
+                aria-label="Expandir sidebar"
+                title="Expandir sidebar"
+              >
+                <ArrowRightToLine className="w-5 h-5 text-gray-100" />
+              </Button>
+            </header>
+
+            <motion.div
+              className="flex flex-col items-center space-y-4"
+              initial={false}
+              animate={{ opacity: 1 }}
+              transition={fadeTransition}
             >
-              <ArrowRightToLine className="size-5 text-gray-100" />
-            </Button>
-          </header>
+              <Button onClick={handleNewPrompt} aria-label="Novo prompt" title="Novo prompt">
+                <Plus className="w-5 h-5 text-white" />
+              </Button>
+            </motion.div>
+          </section>
+        )}
 
-          <div className="flex flex-col items-center space-y-4">
-            <Button onClick={handleNewPrompt} aria-label="Novo prompt" title="Novo prompt">
-              <Plus className="w-5 h-5 text-white" />
-            </Button>
-          </div>
-        </section>
-      )}
-
-      {!isCollapsed && (
-        <>
-          <section className="p-6">
-            <div className="md:hidden mb-4">
-              <div className="flex items-center justify-between">
-                <Button variant={"secondary"} aria-label="Fechar menu" title="Fechar menu">
-                  <X className="size-5 text-gray-100" />
-                </Button>
+        {!isCollapsed && (
+          <>
+            <section className="p-6">
+              <div className="md:hidden mb-4">
+                <div className="flex items-center justify-between">
+                  <Button variant="secondary" aria-label="Fechar menu" title="Fechar menu" onClick={closeMobile}>
+                    <X className="w-5 h-5 text-gray-100" />
+                  </Button>
+                </div>
               </div>
-            </div>
 
-            <div className="flex w-full items-center justify-between mb-6">
-              <header className="flex items-center justify-start">
-                <Logo />
-                <Button
-                  onClick={collapseSidebar}
-                  variant={"icon"}
-                  className="hidder md:inline-flex p-2 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-accent-500 rounded-lg transition-colors"
-                  title="Minimizar sidebar"
-                  aria-label="Minimizar sidebar"
-                >
-                  <ArrowLeftToLine className="size-5 text-gray-100" />
-                </Button>
-              </header>
-            </div>
-
-            <section className="mb-5">
-              <form action={searchAction} className="group relative w-full" ref={formRef}>
-                <Input
-                  name="q"
-                  value={query}
-                  onChange={handleQueryChange}
-                  type="text"
-                  placeholder="Buscar prompts..."
-                />
-
-                {isPending && (
-                  <div
-                    title="Carregando prompts"
-                    aria-label="Carregando prompts"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2 text-gray-300"
+              <motion.div
+                className="flex w-full items-center justify-between mb-6"
+                initial={false}
+                animate={{ opacity: 1 }}
+                transition={fadeTransition}
+              >
+                <header className="flex w-full items-center justify-between">
+                  <Logo />
+                  <Button
+                    onClick={collapseSidebar}
+                    variant="icon"
+                    className={iconButtonClassName.replace("hidden", "")}
+                    title="Minimizar sidebar"
+                    aria-label="Minimizar sidebar"
                   >
-                    <Spinner />
-                  </div>
-                )}
-              </form>
+                    <ArrowLeftToLine className="w-5 h-5 text-gray-100" />
+                  </Button>
+                </header>
+              </motion.div>
+
+              <section className="mb-5">
+                <form ref={formRef} action={searchAction} className="relative group w-full">
+                  <Input
+                    name="q"
+                    type="text"
+                    value={query}
+                    placeholder="Buscar prompts..."
+                    onChange={handleQueryChange}
+                  />
+                  {isPending && (
+                    <div
+                      title="Carregando prompts"
+                      aria-label="Carregando prompts"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2 text-gray-300"
+                    >
+                      <Spinner />
+                    </div>
+                  )}
+                </form>
+              </section>
+
+              <motion.div initial={false} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={fadeTransition}>
+                <Button onClick={handleNewPrompt} className="w-full" size="lg">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Novo prompt
+                </Button>
+              </motion.div>
             </section>
 
-            <div>
-              <Button onClick={handleNewPrompt} variant={"default"} size={"lg"} className="w-full">
-                <Plus className="size-5 mr-2" />
-                Novo prompt
-              </Button>
-            </div>
-          </section>
-
-          <nav className="flex-1 overflow-auto px-6 pb-6" aria-label="Lista de prompts">
-            <PromptList prompts={promptList} />
-          </nav>
-        </>
-      )}
-    </aside>
+            <motion.nav
+              className="flex-1 overflow-auto px-6 pb-6"
+              aria-label="Lista de prompts"
+              initial={false}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={fadeTransition}
+            >
+              <PromptList prompts={promptList} />
+            </motion.nav>
+          </>
+        )}
+      </motion.aside>
+    </>
   );
 }
