@@ -33,13 +33,20 @@ export function PromptForm({ prompt }: PromptFormProps) {
   const isEdit = !!prompt?.id;
 
   async function submit(data: CreatePromptDto) {
-    const result =
-      isEdit ?
-        await updatePromptAction({
-          id: prompt.id,
-          ...data
-        })
-      : await createPromptAction(data);
+    if (isEdit) {
+      const result = await updatePromptAction({ id: prompt.id, ...data });
+
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+
+      toast.success(result.message);
+      router.refresh();
+      return;
+    }
+
+    const result = await createPromptAction(data);
 
     if (!result.success) {
       toast.error(result.message);
@@ -47,7 +54,7 @@ export function PromptForm({ prompt }: PromptFormProps) {
     }
 
     toast.success(result.message);
-    router.refresh();
+    router.push(`/${result.id}`);
   }
 
   return (

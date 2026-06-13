@@ -43,13 +43,14 @@ export async function createPromptAction(data: CreatePromptDto) {
     const repository = new PrismaPromptRepository(prisma);
     const useCase = new CreatePromptUseCase(repository);
 
-    await useCase.execute(validated.data);
+    const id = await useCase.execute(validated.data);
 
-    revalidatePath("/");
+    revalidatePath("/", "layout");
 
     return {
       success: true,
-      message: "Prompt created successfully."
+      message: "Prompt created successfully.",
+      id
     };
   } catch (error) {
     const _error = error as Error;
@@ -119,7 +120,7 @@ export async function updatePromptAction(data: UpdatePromptDto): Promise<FormSta
     const useCase = new UpdatePromptUseCase(repository);
     await useCase.execute(validated.data);
 
-    revalidatePath("/");
+    revalidatePath("/", "layout");
 
     return {
       success: true,
@@ -151,7 +152,7 @@ export async function deletePromptAction(id: string): Promise<FormState> {
     const useCase = new DeletePromptUseCase(repository);
     await useCase.execute(id);
 
-    revalidatePath("/");
+    revalidatePath("/", "layout");
 
     return {
       success: true,

@@ -4,13 +4,14 @@ import type { CreatePromptDto } from "./create-prompt.dto";
 export class CreatePromptUseCase {
   constructor(private promptRepository: PromptRepository) {}
 
-  async execute(data: CreatePromptDto): Promise<void> {
+  async execute(data: CreatePromptDto): Promise<string> {
     const promptExists = await this.promptRepository.findByTitle(data.title);
 
     if (promptExists) {
       throw new Error("PROMPT_ALREADY_EXISTS");
     }
 
-    await this.promptRepository.create(data);
+    const prompt = await this.promptRepository.create(data);
+    return prompt.id;
   }
 }

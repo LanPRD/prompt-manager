@@ -40,8 +40,8 @@ export class PrismaPromptRepository implements PromptRepository {
     return prompt;
   }
 
-  async create(data: CreatePromptDto): Promise<void> {
-    await this.prisma.prompt.create({
+  async create(data: CreatePromptDto): Promise<Prompt> {
+    return this.prisma.prompt.create({
       data: data
     });
   }
